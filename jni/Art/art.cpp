@@ -18,7 +18,7 @@ void hook_zposed_method(JNIEnv* env, jobject thiz, jobject original, jobject pro
 	}
 
 	{
-	jmethodID methid = env->FromReflectedMethod(proxy);
+	jmethodID methid = env->FromReflectedMethod(original);
 	uint32_t artmeth = uint32_t(methid);
 	uint32_t* interpreter_entry_32 = (uint32_t*) (artmeth + 32);
 	*interpreter_entry_32 = proxy_entry;
