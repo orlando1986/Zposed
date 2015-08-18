@@ -3,7 +3,8 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
     main.cpp \
-    Art/art.cpp
+    Art/art.cpp\
+    Art/art_quick_proxy.S
 
 LOCAL_MODULE := libhook
 LOCAL_MODULE_TAGS := optional
