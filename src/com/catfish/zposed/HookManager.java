@@ -4,18 +4,29 @@ import java.lang.reflect.Method;
 
 import android.util.Log;
 
-import com.catfish.zposed.ui.MainService;
-
 public class HookManager {
+    private final static String TAG = "catfish";
+    private static ThreadLocal<Boolean> sTag = new ThreadLocal<Boolean>();
+
     static {
         System.loadLibrary("hook");
+        sTag.set(false);
     }
 
     public static Object onHooked(Method method, Object receiver, Object[] args) {
-        Class clazz = MainService.class;
-        Log.d("catfish", "onHooked: " + clazz);
+        sTag.set(true);
+        Log.d(TAG, "onHooked: " + args[0]);
         return null;
     }
 
     public native static void hookZposedMethod(Method method);
+
+    public static void resetTag() {
+        sTag.set(false);
+    }
+
+    public static boolean getTag() {
+        boolean result = sTag.get();
+        return result;
+    }
 }

@@ -21,16 +21,16 @@ public class MainActivity extends Activity {
     }
 
     public void onClick(View view) {
-        victim();
+        victim(null, null);
     }
     
-    private void victim() {
+    private void victim(Object a, Object b) {
         Log.d(TAG, "victim called");
     }
 
     private void hookVictim() {
         try {
-            Method victim = getClass().getDeclaredMethod("victim", (Class[]) null);
+            Method victim = getClass().getDeclaredMethod("victim", Object.class, Object.class);
             HookManager.hookZposedMethod(victim);
         } catch (NoSuchMethodException e) {
             Log.e(TAG, e.toString());
