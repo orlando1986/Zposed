@@ -4,6 +4,7 @@
 #include "art.h"
 #include "common.h"
 #include "asm_support.h"
+#include <stdio.h>
 
 static uint32_t original_quick_entry;
 extern "C" void art_quick_dispatcher(void*);
@@ -39,8 +40,11 @@ static jobjectArray BoxArgs(JNIEnv* env, jobject method, const char* shorty, u4*
 	return args_jobj;
 }
 
-static uint64_t artQuickToDispatcher(void* method) {
-	LOGI("hook arrived");
+extern "C" uint64_t artQuickToDispatcher(void* method, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
+	uint32_t* sp_c = 0;
+	asm("add %[result], sp, #0x28" : [result] "=r" (sp_c));
+
+	LOGI("hook arrived, sp_c=%x", sp_c);
 	JNIEnv* env = NULL;
 	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		LOGE("HOOK FAILED, DIDN'T GET env");
@@ -57,8 +61,8 @@ static uint64_t artQuickToDispatcher(void* method) {
 }
 
 extern "C" uint32_t switchEntry() {
-	return original_quick_entry;
-//	return (uint32_t)(&artQuickToDispatcher);
+//	return original_quick_entry;
+	return (uint32_t)(&artQuickToDispatcher);
 }
 
 static void hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
