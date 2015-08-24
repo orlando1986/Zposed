@@ -5,6 +5,7 @@
 #include "common.h"
 #include "asm_support.h"
 
+static uint32_t original_quick_entry;
 extern "C" void art_quick_dispatcher(void*);
 static JavaVM* gJVM;
 static jclass methodClass = NULL;
@@ -55,8 +56,9 @@ static uint64_t artQuickToDispatcher(void* method) {
 	return 0;
 }
 
-extern "C" uint32_t lockAddress() {
-	return (uint32_t)(&artQuickToDispatcher);
+extern "C" uint32_t switchEntry() {
+	return original_quick_entry;
+//	return (uint32_t)(&artQuickToDispatcher);
 }
 
 static void hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
@@ -65,6 +67,7 @@ static void hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
 	jmethodID methid = env->FromReflectedMethod(method);
 	uint32_t artmeth = uint32_t(methid);
 	uint32_t* quick_entry_32 = (uint32_t*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);
+	original_quick_entry = *quick_entry_32;
 	*quick_entry_32 = (uint32_t)(&art_quick_dispatcher);
 
 	LOGI("native hook ends");

@@ -15,14 +15,13 @@
     .size \name, .-\name
 .endm
 
-	.extern lockAddress
+.extern switchEntry
 ENTRY art_quick_dispatcher
-	push 	{r0, r4}
+	push 	{r0-r4}
 	mov     r4, lr
-	blx     lockAddress
+	blx     switchEntry
 	mov     ip, r0
 	mov     lr, r4
-	pop     {r0, r4}
-	mov 	r0, r0
+	pop     {r0-r4}
     bx      ip
 END art_quick_dispatcher
