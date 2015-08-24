@@ -15,7 +15,7 @@ public class HookManager {
 
     public static Object onHooked(Method method, Object receiver, Object[] args) {
         sTag.set(true);
-        Log.d(TAG, "onHooked: " + args[0]);
+        Log.d(TAG, "onHooked: " + method, new Exception());
         return null;
     }
 

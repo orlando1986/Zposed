@@ -3,9 +3,9 @@
 #include "log.h"
 #include "art.h"
 #include "common.h"
+#include "asm_support.h"
 
 extern "C" void art_quick_dispatcher(void*);
-extern "C" uint64_t art_quick_call_entrypoint(void* method, void *self, u4 **args, u4 **old_sp, const void *entrypoint);
 static JavaVM* gJVM;
 static jclass methodClass = NULL;
 static jclass objectClass = NULL;
@@ -14,7 +14,6 @@ static jmethodID hookMethod = NULL;
 static jmethodID getTag = NULL;
 static jmethodID resetTag = NULL;
 static jobject (*addWeakGloablReferece)(JavaVM*, void*, void*);
-static void (*art_quick_to_interpreter_bridge)(void*);
 
 static JNINativeMethod gMethods[] =
 		{ { "hookZposedMethod", "(Ljava/lang/reflect/Method;)V", (void*) hook_zposed_method } };
@@ -39,21 +38,25 @@ static jobjectArray BoxArgs(JNIEnv* env, jobject method, const char* shorty, u4*
 	return args_jobj;
 }
 
-extern "C" uint64_t artQuickToDispatcher(void* method, void *self, u4 **args, u4 **old_sp) {
+static uint64_t artQuickToDispatcher(void* method) {
 	LOGI("hook arrived");
 	JNIEnv* env = NULL;
 	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		LOGE("HOOK FAILED, DIDN'T GET env");
 		return 0;
 	}
-	jboolean if_original = env->CallStaticBooleanMethod(hookClass, getTag);
-	if (if_original) {
-		return art_quick_call_entrypoint(method, self, args, old_sp, (const void*) art_quick_to_interpreter_bridge);
-	}
+//	jboolean if_original = env->CallStaticBooleanMethod(hookClass, getTag);
+//	if (if_original) {
+//		return art_quick_call_entrypoint(method, self, args, old_sp, (const void*) art_quick_to_interpreter_bridge);
+//	}
 	jobject meth_method = env->ToReflectedMethod(methodClass, (jmethodID) method, (jboolean) false);
-	jobjectArray arg_array = BoxArgs(env, meth_method, "LLL", args, self);
-	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, NULL, arg_array);
+//	jobjectArray arg_array = BoxArgs(env, meth_method, "LLL", args, self);
+	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, NULL, NULL);
 	return 0;
+}
+
+extern "C" uint32_t lockAddress() {
+	return (uint32_t)(&artQuickToDispatcher);
 }
 
 static void hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
@@ -61,7 +64,7 @@ static void hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
 
 	jmethodID methid = env->FromReflectedMethod(method);
 	uint32_t artmeth = uint32_t(methid);
-	uint32_t* quick_entry_32 = (uint32_t*) (artmeth + 40);
+	uint32_t* quick_entry_32 = (uint32_t*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);
 	*quick_entry_32 = (uint32_t)(&art_quick_dispatcher);
 
 	LOGI("native hook ends");
@@ -82,7 +85,6 @@ static int registerNativeMethods(JNIEnv* env, const char* className,
 
 static void init_member(JNIEnv* env) {
 	void* handle = dlopen("libart.so", RTLD_LAZY | RTLD_GLOBAL);
-	art_quick_to_interpreter_bridge =  (void (*)(void*)) dlsym(handle, "art_quick_to_interpreter_bridge");
 	addWeakGloablReferece = (jobject (*)(JavaVM*, void*, void*)) dlsym(handle, "_ZN3art9JavaVMExt22AddWeakGlobalReferenceEPNS_6ThreadEPNS_6mirror6ObjectE");
 
 	methodClass = (jclass) env->NewGlobalRef((jobject) env->FindClass("java/lang/reflect/Method"));
@@ -94,10 +96,6 @@ static void init_member(JNIEnv* env) {
 	resetTag = env->GetStaticMethodID(cls_hook, "resetTag", "()V");
 	hookMethod = env->GetStaticMethodID(cls_hook, "onHooked",
 			"(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-
-	uint32_t artmeth = uint32_t(hookMethod);
-	uint32_t* quick_entry_32 = (uint32_t*) (artmeth + 40);
-	*quick_entry_32 = (uint32_t)(art_quick_to_interpreter_bridge);
 }
 
 jint art_jni_onload(JavaVM* vm, void* reserved) {
