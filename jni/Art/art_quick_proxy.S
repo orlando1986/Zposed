@@ -17,11 +17,14 @@
 
 .extern switchEntry
 ENTRY art_quick_dispatcher
-	push 	{r0-r4}
-	mov     r4, lr
-	blx     switchEntry
-	mov     ip, r0
-	mov     lr, r4
-	pop     {r0-r4}
-    bx      ip
+	push   {r0-r4}
+	mov    r4, lr
+	blx    switchEntry
+	mov    ip, r0
+	mov    lr, r4
+	pop    {r0-r4}
+	str    r1, [sp, #4]
+	str    r2, [sp, #8]
+	str    r3, [sp, #12]
+	bx     ip
 END art_quick_dispatcher

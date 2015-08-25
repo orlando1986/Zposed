@@ -40,20 +40,16 @@ static jobjectArray BoxArgs(JNIEnv* env, jobject method, const char* shorty, u4*
 	return args_jobj;
 }
 
-extern "C" uint64_t artQuickToDispatcher(void* method, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
-	uint32_t* sp_c = 0;
-	asm("add %[result], sp, #0x28" : [result] "=r" (sp_c));
+extern "C" uint64_t artQuickToDispatcher(void* method, void* arg1, void* arg2, void* arg3) {
+	uint32_t* args = 0;
+	asm("add %[result], sp, #0x28" : [result] "=r" (args));
 
-	LOGI("hook arrived, sp_c=%x", sp_c);
+	LOGI("hook arrived");
 	JNIEnv* env = NULL;
 	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		LOGE("HOOK FAILED, DIDN'T GET env");
 		return 0;
 	}
-//	jboolean if_original = env->CallStaticBooleanMethod(hookClass, getTag);
-//	if (if_original) {
-//		return art_quick_call_entrypoint(method, self, args, old_sp, (const void*) art_quick_to_interpreter_bridge);
-//	}
 	jobject meth_method = env->ToReflectedMethod(methodClass, (jmethodID) method, (jboolean) false);
 //	jobjectArray arg_array = BoxArgs(env, meth_method, "LLL", args, self);
 	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, NULL, NULL);
