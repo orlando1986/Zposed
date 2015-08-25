@@ -1,32 +1,60 @@
 package com.catfish.zposed;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.util.Log;
 
 public class HookManager {
     private final static String TAG = "catfish";
-    private static ThreadLocal<Boolean> sTag = new ThreadLocal<Boolean>();
+    private static ThreadLocal<Integer> sTag = new ThreadLocal<Integer>();
+    private static Map<Method, Integer> sMethodInfo = new HashMap<Method, Integer>();
+    private static int sHookPtr = 0;
 
     static {
         System.loadLibrary("hook");
-        sTag.set(false);
+        sHookPtr = obtainHookPtr();
+        sTag.set(sHookPtr);
     }
 
     public static Object onHooked(Method method, Object receiver, Object[] args) {
-        sTag.set(true);
-        Log.d(TAG, "onHooked: " + method, new Exception());
+        int ptr = sMethodInfo.get(method);
+        if (ptr <= 0) {
+            Log.e(TAG, "get wrong ptr for " + method + ", exit");
+            return null;
+        }
+        sTag.set(ptr);
+        Log.d(TAG, "onHooked", new Exception());
+        try {
+            return method.invoke(receiver, new Object[]{null, null});
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, e.toString());
+        } catch (InvocationTargetException e) {
+            Log.e(TAG, e.toString());
+        }
         return null;
     }
 
-    public native static void hookZposedMethod(Method method);
-
-    public static void resetTag() {
-        sTag.set(false);
+    public static void hookMethod(Method method) {
+        int ptr = hookZposedMethod(method);
+        sMethodInfo.put(method, ptr);
     }
 
-    public static boolean getTag() {
-        boolean result = sTag.get();
+    private native static int hookZposedMethod(Method method);
+
+    public native static int obtainHookPtr();
+
+    public static int getTag() {
+        int result = sTag.get();
+        if (result <= 0) {
+            result = sHookPtr;
+        }
+        Log.d(TAG, "getTag: " + result);
+        sTag.set(sHookPtr);
         return result;
     }
 }

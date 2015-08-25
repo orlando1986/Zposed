@@ -21,7 +21,7 @@ public class MainActivity extends Activity {
     }
 
     public void onClick(View view) {
-        victim(null, null);
+        victim(new Activity(), new Object());
     }
     
     private void victim(Object a, Object b) {
@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
     private void hookVictim() {
         try {
             Method victim = getClass().getDeclaredMethod("victim", Object.class, Object.class);
-            HookManager.hookZposedMethod(victim);
+            HookManager.hookMethod(victim);
         } catch (NoSuchMethodException e) {
             Log.e(TAG, e.toString());
         }
