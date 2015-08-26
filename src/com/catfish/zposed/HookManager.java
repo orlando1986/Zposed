@@ -10,7 +10,7 @@ import android.util.Log;
 public class HookManager {
     private final static String TAG = "catfish";
     private static ThreadLocal<Integer> sTag = new ThreadLocal<Integer>();
-    private static Map<Method, Integer> sMethodInfo = new HashMap<Method, Integer>();
+    private static Map<String, Integer> sMethodInfo = new HashMap<String, Integer>();
     private static int sHookPtr = 0;
 
     static {
@@ -19,14 +19,29 @@ public class HookManager {
         sTag.set(sHookPtr);
     }
 
-    public static Object onHooked(Method method, Object receiver, Object[] args) {
-        int ptr = sMethodInfo.get(method);
-        if (ptr <= 0) {
-            Log.e(TAG, "get wrong ptr for " + method + ", exit");
-            return null;
+    public static Object onHooked(Method method, int[] args) {
+        try {
+            Class<?> artmethod = Class.forName("java.lang.reflect.ArtMethod");
+            Method getMethodName = artmethod.getDeclaredMethod("getMethodName", artmethod);
+            String name = (String)getMethodName.invoke(null, method);
+            Log.d(TAG, "onHooked: arg-" + args, new Exception());
+            int ptr = sMethodInfo.get(name);
+            if (ptr <= 0) {
+                Log.e(TAG, "get wrong ptr for " + method + ", exit");
+                return null;
+            }
+            sTag.set(ptr);
+        } catch (NoSuchMethodException e) {
+            Log.e(TAG, e.toString());
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, e.toString());
+        } catch (InvocationTargetException e) {
+            Log.e(TAG, e.toString());
         }
-        sTag.set(ptr);
-        Log.d(TAG, "onHooked", new Exception());
 /*        try {
             return method.invoke(receiver, new Object[]{null, null});
         } catch (IllegalAccessException e) {
@@ -36,13 +51,13 @@ public class HookManager {
         } catch (InvocationTargetException e) {
             Log.e(TAG, e.toString());
         }*/
-        sTag.set(sHookPtr);
+//        sTag.set(sHookPtr);
         return null;
     }
 
     public static void hookMethod(Method method) {
         int ptr = hookZposedMethod(method);
-        sMethodInfo.put(method, ptr);
+        sMethodInfo.put(method.getName(), ptr);
     }
 
     private native static int hookZposedMethod(Method method);

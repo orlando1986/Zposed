@@ -19,21 +19,16 @@ static JNINativeMethod gMethods[] =
 		{ { "hookZposedMethod", "(Ljava/lang/reflect/Method;)I", (void*) hook_zposed_method },
 		  { "obtainHookPtr", "()I", (void*) obtain_hook_ptr }};
 
-static jobjectArray BoxArgs(void* method, int* args, void* self) {
-	LOGD("BoxArgs");
-	return NULL;
-}
-
-static uint64_t artQuickToDispatcher(void* method, jobjectArray argsArray) {
-	LOGD("artQuickToDispatcher");
+static jintArray BoxArgs(void* method, int* args) {
 	JNIEnv* env = NULL;
 	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		LOGE("HOOK FAILED, DIDN'T GET env");
 		return 0;
 	}
-	jobject meth_method = env->ToReflectedMethod(methodClass, (jmethodID) method, (jboolean) false);
-	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, NULL, NULL);
-	return 0;
+	jintArray data = env->NewIntArray(6);
+	env->SetIntArrayRegion(data, 0, 6, args);
+	LOGD("BoxArgs");
+	return data;
 }
 
 extern "C" int switchEntry(int flag) {
@@ -47,7 +42,7 @@ extern "C" int switchEntry(int flag) {
 	} else if (flag == 1) {
 		return (int)(&BoxArgs);
 	} else if (flag == 2) {
-		return (int)(&artQuickToDispatcher);
+		return (int)(hookMethod);
 	}
 }
 
@@ -75,7 +70,7 @@ static void init_member(JNIEnv* env) {
 	hookClass = (jclass) env->NewGlobalRef((jobject) cls_hook);
 	getTag = env->GetStaticMethodID(cls_hook, "getTag", "()I");
 	hookMethod = env->GetStaticMethodID(cls_hook, "onHooked",
-			"(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+			"(Ljava/lang/reflect/Method;[I)Ljava/lang/Object;");
 }
 
 static int registerNativeMethods(JNIEnv* env, const char* className,
