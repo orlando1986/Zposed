@@ -36,6 +36,7 @@ public class HookManager {
         } catch (InvocationTargetException e) {
             Log.e(TAG, e.toString());
         }*/
+        sTag.set(sHookPtr);
         return null;
     }
 
@@ -50,7 +51,7 @@ public class HookManager {
 
     public static int getTag() {
         int result = sTag.get();
-        if (result <= 0) {
+        if (result == 0) {
             result = sHookPtr;
         }
         sTag.set(sHookPtr);
