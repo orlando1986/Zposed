@@ -27,7 +27,7 @@ public class HookManager {
         }
         sTag.set(ptr);
         Log.d(TAG, "onHooked", new Exception());
-        try {
+/*        try {
             return method.invoke(receiver, new Object[]{null, null});
         } catch (IllegalAccessException e) {
             Log.e(TAG, e.toString());
@@ -35,7 +35,7 @@ public class HookManager {
             Log.e(TAG, e.toString());
         } catch (InvocationTargetException e) {
             Log.e(TAG, e.toString());
-        }
+        }*/
         return null;
     }
 
@@ -53,7 +53,6 @@ public class HookManager {
         if (result <= 0) {
             result = sHookPtr;
         }
-        Log.d(TAG, "getTag: " + result);
         sTag.set(sHookPtr);
         return result;
     }

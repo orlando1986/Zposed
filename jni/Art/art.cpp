@@ -6,8 +6,8 @@
 #include "asm_support.h"
 #include <stdio.h>
 
-static uint32_t original_quick_entry;
 extern "C" void art_quick_dispatcher(void*);
+extern "C" void art_quick_proxy(void*);
 static JavaVM* gJVM;
 static jclass methodClass = NULL;
 static jclass objectClass = NULL;
@@ -20,59 +20,36 @@ static JNINativeMethod gMethods[] =
 		{ { "hookZposedMethod", "(Ljava/lang/reflect/Method;)I", (void*) hook_zposed_method },
 		  { "obtainHookPtr", "()I", (void*) obtain_hook_ptr }};
 
-static int getArgLength(JNIEnv* env, jobject method) {
-	return 3;
+static jobjectArray BoxArgs(void* method, uint32_t* args, void* self) {
+	LOGD("BoxArgs");
+	return NULL;
 }
 
-static char* getShorty(JNIEnv* env, jobject method) {
-	return (char*)("LLL");
-}
-
-static jobjectArray BoxArgs(JNIEnv* env, jobject method, uint32_t* args, void* self) {
-	int arg_len = getArgLength(env, method);
-	char* shorty = getShorty(env, method);
-	jobjectArray args_jobj = env->NewObjectArray(arg_len, objectClass, NULL);;
-	for (size_t i = 0; i < arg_len; ++i) {
-		if (shorty[i] == 'L') {
-			jobject val = addWeakGloablReferece(gJVM, self, (void*) args[i]);
-			env->SetObjectArrayElement(args_jobj, i, val);
-		} else {
-//			jobject val = BoxPrimitive(shorty[i], args[i]);
-//			env->SetObjectArrayElement(args_jobj, i, val);
-		}
-	}
-
-	return args_jobj;
-}
-
-extern "C" uint64_t artQuickToDispatcher(void* method, void* arg1, void* arg2, void* arg3) {
-	uint32_t* args;
-	uint32_t* self;
-	asm("add %[result], sp, #0x28" : [result] "=r" (args));
-	asm("mov %[result], r9" : [result] "=r" (self));
-
-	LOGI("hook arrived");
+static uint64_t artQuickToDispatcher(void* method, jobjectArray argsArray) {
+	LOGD("artQuickToDispatcher");
 	JNIEnv* env = NULL;
 	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		LOGE("HOOK FAILED, DIDN'T GET env");
 		return 0;
 	}
 	jobject meth_method = env->ToReflectedMethod(methodClass, (jmethodID) method, (jboolean) false);
-	jobject receiver = addWeakGloablReferece(gJVM, self, arg1);
-//	jobjectArray arg_array = BoxArgs(env, meth_method, args, self);
-	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, receiver, NULL);
+	env->CallStaticObjectMethod(hookClass, hookMethod, meth_method, NULL, NULL);
 	return 0;
 }
 
-extern "C" uint32_t switchEntry() {
-	JNIEnv* env = NULL;
-	if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-		LOGE("HOOK FAILED, DIDN'T GET env");
-		return 0;
+extern "C" uint32_t switchEntry(int flag) {
+	if (flag == 0) {
+		JNIEnv* env = NULL;
+		if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+			LOGE("HOOK FAILED, DIDN'T GET env");
+			return 0;
+		}
+		return (uint32_t)env->CallStaticIntMethod(hookClass, getTag);
+	} else if (flag == 1) {
+		return (uint32_t)(&BoxArgs);
+	} else if (flag == 2) {
+		return (uint32_t)(&artQuickToDispatcher);
 	}
-	return (uint32_t)env->CallStaticIntMethod(hookClass, getTag);
-//	return original_quick_entry;
-//	return (uint32_t)(&artQuickToDispatcher);
 }
 
 static jint hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
@@ -84,17 +61,8 @@ static jint hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
 	return ptr;
 }
 
-static int registerNativeMethods(JNIEnv* env, const char* className,
-		JNINativeMethod* gMethods, int numMethods) {
-	jclass clazz = env->FindClass(className);
-	if (clazz == NULL) {
-		return JNI_FALSE;
-	}
-	if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
-		return JNI_FALSE;
-	}
-
-	return JNI_TRUE;
+static jint obtain_hook_ptr(JNIEnv* env, jobject thiz) {
+	return (int)(&art_quick_proxy);
 }
 
 static void init_member(JNIEnv* env) {
@@ -111,8 +79,17 @@ static void init_member(JNIEnv* env) {
 			"(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 }
 
-jint obtain_hook_ptr(JNIEnv* env, jobject thiz) {
-	return (int)(&artQuickToDispatcher);
+static int registerNativeMethods(JNIEnv* env, const char* className,
+		JNINativeMethod* gMethods, int numMethods) {
+	jclass clazz = env->FindClass(className);
+	if (clazz == NULL) {
+		return JNI_FALSE;
+	}
+	if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+		return JNI_FALSE;
+	}
+
+	return JNI_TRUE;
 }
 
 jint art_jni_onload(JavaVM* vm, void* reserved) {
