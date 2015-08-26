@@ -35,7 +35,7 @@ ENTRY art_quick_dispatcher
 END art_quick_dispatcher
 
 ENTRY art_quick_proxy
-    push   {r0-r7}                @ sp - 32
+    push   {r0-r7}                  @ sp - 32
     mov    r4, lr
     ldr    r5, [sp, #(32 + 4)]
     ldr    r6, [sp, #(32 + 8)]

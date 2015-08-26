@@ -2,7 +2,6 @@
 #include <dlfcn.h>
 #include "log.h"
 #include "art.h"
-#include "common.h"
 #include "asm_support.h"
 #include <stdio.h>
 
@@ -20,7 +19,7 @@ static JNINativeMethod gMethods[] =
 		{ { "hookZposedMethod", "(Ljava/lang/reflect/Method;)I", (void*) hook_zposed_method },
 		  { "obtainHookPtr", "()I", (void*) obtain_hook_ptr }};
 
-static jobjectArray BoxArgs(void* method, uint32_t* args, void* self) {
+static jobjectArray BoxArgs(void* method, int* args, void* self) {
 	LOGD("BoxArgs");
 	return NULL;
 }
@@ -37,27 +36,27 @@ static uint64_t artQuickToDispatcher(void* method, jobjectArray argsArray) {
 	return 0;
 }
 
-extern "C" uint32_t switchEntry(int flag) {
+extern "C" int switchEntry(int flag) {
 	if (flag == 0) {
 		JNIEnv* env = NULL;
 		if (gJVM->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 			LOGE("HOOK FAILED, DIDN'T GET env");
 			return 0;
 		}
-		return (uint32_t)env->CallStaticIntMethod(hookClass, getTag);
+		return (int)env->CallStaticIntMethod(hookClass, getTag);
 	} else if (flag == 1) {
-		return (uint32_t)(&BoxArgs);
+		return (int)(&BoxArgs);
 	} else if (flag == 2) {
-		return (uint32_t)(&artQuickToDispatcher);
+		return (int)(&artQuickToDispatcher);
 	}
 }
 
 static jint hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
 	jmethodID methid = env->FromReflectedMethod(method);
-	uint32_t artmeth = uint32_t(methid);
-	uint32_t* quick_entry_32 = (uint32_t*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);
+	int artmeth = int(methid);
+	int* quick_entry_32 = (int*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);
 	jint ptr = (jint) *quick_entry_32;
-	*quick_entry_32 = (uint32_t)(&art_quick_dispatcher);
+	*quick_entry_32 = (int)(&art_quick_dispatcher);
 	return ptr;
 }
 
