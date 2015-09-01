@@ -16,57 +16,48 @@
     .size \name, .-\name
 .endm
 
-/*
- * switchEntry flag:
- * 0: get entry of the original or the proxy
- * 1: box arguments
- * 2: call proxy method
- */
+.extern switch_entry
+.extern box_args
 
-.extern switchEntry
-ENTRY art_quick_dispatcher
-	push   {r0-r4}
-	mov    r4, lr
-	mov    r0, #0
-	push   {r1-r7}
-	blx    switchEntry
-	pop    {r1-r7}
-	mov    ip, r0
-	mov    lr, r4
-	pop    {r0-r4}
-	bx     ip
-END art_quick_dispatcher
+ENTRY exe_switch_entry
+    push   {r1-r7, lr}
+    blx    switch_entry
+    ldr    r7, [r0, #METHOD_QUICK_CODE_OFFSET_32]
+    mov    ip, r7
+    blx    ip
+    pop    {r1-r7, pc}
+END exe_switch_entry
 
 ENTRY art_quick_proxy
-    mov    r4, lr
-    ldr    r5, [sp, #(0 + 4)]
-    ldr    r6, [sp, #(0 + 8)]
-    ldr    r7, [sp, #(0 + 12)]
-    str    r1, [sp, #(0 + 4)]       @this
-    str    r2, [sp, #(0 + 8)]       @arg0
-    str    r3, [sp, #(0 + 12)]      @arg1
-    mov    r3, r0                   @r3 = method
-    mov    r0, #1
-    push   {r1-r7}
-    blx    switchEntry
-    pop    {r1-r7}
+    push   {r0-r7}
+    mov    r7, lr
+    mov    r0, #0
+    bl     exe_switch_entry     @call getEntryTag
     mov    ip, r0
-    mov    r0, r3
-    add    r1, sp, #(0 + 4)
-    push   {r1-r7}
-    blx    ip
-    pop    {r1-r7}
-    mov    r2, r0                   @r2 = args
-    mov    r0, #2
-    push   {r1-r7}
-    blx    switchEntry
-    pop    {r1-r7}
-    mov    r1, r3                   @r1 = method
-    str    r5, [sp, #(0 + 4)]
-    str    r6, [sp, #(0 + 8)]
-    str    r7, [sp, #(0 + 12)]
-    ldr    r3, [r0, #METHOD_QUICK_CODE_OFFSET_32]
-    mov    ip, r3
-    mov    lr, r4
+    mov    lr, r7
+    cmp    r0, #0
+    pop    {r0-r7}
+    beq    PROXY
+    bx     ip                   @call original method
+
+PROXY:
+    mov    r7, lr
+    str    r0, [sp]
+    str    r1, [sp, #4]
+    str    r2, [sp, #8]
+    str    r3, [sp, #12]        @construct the args sp
+    add    r2, sp, #4
+    mov    r1, r9
+    blx    box_args
+    mov    r3, r0               @r3=box
+    ldr    r2, [sp, #4]         @r2=this
+    ldr    r1, [sp]             @r1=method
+    mov    r0, #3
+    push   {r1-r7)
+    blx    switch_entry
+    ldr    r6, [r0, #METHOD_QUICK_CODE_OFFSET_32]
+    mov    ip, r6
+    pop    {r1-r7)
+    mov    lr, r7
     bx     ip
 END art_quick_proxy

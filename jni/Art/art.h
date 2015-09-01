@@ -1,7 +1,16 @@
 #include <jni.h>
+#include <dlfcn.h>
+#include "log.h"
+#include "asm_support.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-#define JNIREG_CLASS "com/catfish/zposed/HookManager"
+#define JNIHOOK_CLASS "com/catfish/zposed/HookManager"
+#define JNIENTRY_CLASS "com/catfish/zposed/HookEntries"
 
+jclass hookClass;
+jclass methodClass;
+JavaVM* gJVM;
+jmethodID hookMethod;
 jint art_jni_onload(JavaVM* vm, void* reserved);
-static jint hook_zposed_method(JNIEnv* env, jobject thiz, jobject method);
-static jint obtain_hook_ptr(JNIEnv* env, jobject thiz);
+jobject (*addWeakGloablReference)(JavaVM*, void*, void*);

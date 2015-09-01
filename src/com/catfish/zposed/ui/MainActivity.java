@@ -21,11 +21,11 @@ public class MainActivity extends Activity {
     }
 
     public void onClick(View view) {
-        victim(1, 2, 3, 4, 5);
+        victim(1, 1234567890987654l, 'x');
     }
 
-    private void victim(int a, int b, int c, int d, int e) {
-        Log.d(TAG, "victim called");
+    private void victim(int a, long b, char c) {
+        Log.d(TAG, "victim called: a=" + a + ", b=" + b + ", c=" + c);
     }
 
     private void hookVictim() {
