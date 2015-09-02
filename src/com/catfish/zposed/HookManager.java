@@ -1,5 +1,6 @@
 package com.catfish.zposed;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -29,14 +30,15 @@ public class HookManager {
         return result;
     }
 
-    public static Object onHooked(Method method, Object receiver, Object[] args) {
+    public static Object onHooked(Object artmethod, Object receiver, Object[] args) {
 //        Log.d(TAG, "onHooked receiver=" + receiver + ", args0=" + args[0] + ", args1=" + args[1] + ", args2=" + args[2] /*, new Exception()*/);
         Log.d(TAG, "onHooked receiver=" + receiver);
+        Method method = instanceMethod(artmethod);
         int ptr = sMethodInfo.get(method.toString());
         sEntryTag.set(ptr);
-        Object result = notifyOnHooked(method, receiver, args);
+//        Object result = notifyOnHooked(method, receiver, args);
         sEntryTag.set(0);
-        return result;
+        return null;
     }
 
     private static Object notifyOnHooked(Method method, Object receiver, Object[] args) {
@@ -51,4 +53,23 @@ public class HookManager {
         }
         return null;
     }
+    
+    private static Method instanceMethod(Object artmethod) {
+        try {
+            Constructor<?> c = Method.class.getDeclaredConstructor(artmethod.getClass());
+            return (Method) c.newInstance(artmethod);
+        } catch (NoSuchMethodException e) {
+            Log.e(TAG, e.toString());
+        } catch (InstantiationException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, e.toString());
+        } catch (InvocationTargetException e) {
+            Log.e(TAG, e.toString());
+        }
+        return null;
+    }
+
 }

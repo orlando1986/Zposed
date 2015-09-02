@@ -47,40 +47,15 @@ ENTRY art_quick_proxy
     bx     ip                   @call original method
 
 PROXY:
-    push   {r0, r1, r4-r7}              @sp-24
-    ldr    r4, [sp, #24]
-    ldr    r5, [sp, #(24+4)]
-    ldr    r6, [sp, #(24+8)]
-    ldr    r7, [sp, #(24+12)]
-    push   {r4-r7}              @sp-40
-
-    mov    r7, lr
-    str    r0, [sp, #40]        @r0=method
-    str    r1, [sp, #(40 + 4)]
-    str    r2, [sp, #(40 + 8)]
-    str    r3, [sp, #(40 + 12)]
-    add    r2, sp, #(40 + 4)          @r2=args
-    mov    r1, r9
-    bl     box_args
-    mov    lr, r7
-    mov    r3, r0               @r3=box
-
-    pop    {r4-r7}
-    str    r4, [sp, #24]
-    str    r5, [sp, #(24+4)]
-    str    r6, [sp, #(24+8)]
-    str    r7, [sp, #(24+12)]
-    pop    {r0, r1, r4-r7}
-
     mov    r2, r1               @r2=this
     mov    r1, r0               @r1=method
     mov    r0, #3
-    mov    ip, lr
+    push   {r1-r7}
+    mov    r7, lr
     bl     switch_entry
-    mov    lr, ip
-    push   {r7}
+    mov    lr, r7
     ldr    r7, [r0, #METHOD_QUICK_CODE_OFFSET_32]
     mov    ip, r7
-    pop    {r7}
+    pop    {r1-r7}
     bx     ip
 END art_quick_proxy

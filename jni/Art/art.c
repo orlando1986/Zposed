@@ -34,7 +34,7 @@ static void init_member(JNIEnv* env) {
 	hookClass = (jclass) (*env)->NewGlobalRef(env, (jobject) cls_hook);
 
 	hookMethod = (*env)->GetStaticMethodID(env, cls_hook, "onHooked",
-			"(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+			"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 }
 
 static int registerNativeMethods(JNIEnv* env, const char* className,
