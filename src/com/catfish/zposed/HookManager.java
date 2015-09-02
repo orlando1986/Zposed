@@ -32,13 +32,13 @@ public class HookManager {
 
     public static Object onHooked(Object artmethod, Object receiver, Object[] args) {
 //        Log.d(TAG, "onHooked receiver=" + receiver + ", args0=" + args[0] + ", args1=" + args[1] + ", args2=" + args[2] /*, new Exception()*/);
-        Log.d(TAG, "onHooked receiver=" + receiver);
+//        Log.d(TAG, "onHooked receiver=" + receiver + ", len=" + args.length);
         Method method = instanceMethod(artmethod);
         int ptr = sMethodInfo.get(method.toString());
         sEntryTag.set(ptr);
-//        Object result = notifyOnHooked(method, receiver, args);
+        Object result = notifyOnHooked(method, receiver, args);
         sEntryTag.set(0);
-        return null;
+        return result;
     }
 
     private static Object notifyOnHooked(Method method, Object receiver, Object[] args) {

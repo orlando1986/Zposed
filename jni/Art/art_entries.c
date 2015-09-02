@@ -39,15 +39,6 @@ void init_entries(JNIEnv* env) {
 	*quick_entry_32 = (int) (&get_object_addr);
 }
 
-int get_args_count(void* artmethod) {
-	JNIEnv* env = NULL;
-	if ((*gJVM)->GetEnv(gJVM, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-		return -1;
-	}
-	jobject method = (*env)->ToReflectedMethod(env, methodClass, (jmethodID) artmethod, 0);
-	return (int)(*env)->CallStaticIntMethod(env, gEntryClass, gMethods[4], method);
-}
-
 int box_args(void* artmethod, void* self, int* args) {
 	JNIEnv* env = NULL;
 	if ((*gJVM)->GetEnv(gJVM, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
