@@ -18,7 +18,6 @@
 
 .extern switch_entry
 .extern box_args
-.extern get_args_count
 
 ENTRY get_object_addr
     mov    r0, r1
@@ -37,7 +36,7 @@ END exe_switch_entry
 ENTRY art_quick_proxy
     push   {r0-r7}
     mov    r7, lr
-    mov    r0, #0
+    mov    r0, #9
     bl     exe_switch_entry     @call getEntryTag
     mov    ip, r0
     mov    lr, r7
@@ -74,7 +73,7 @@ PROXY:
 
     mov    r2, r1               @r2=this
     mov    r1, r0               @r1=method
-    mov    r0, #3
+    mov    r0, #12
     push   {r1-r7}
     mov    r7, lr
     bl     switch_entry

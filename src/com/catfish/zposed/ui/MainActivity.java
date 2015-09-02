@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
                 HookManager.hookMethod(m, new HookCallback() {
                     @Override
                     public Object onHook(Method method, Object receiver, Object[] args) {
+                        Log.d(TAG, "onHooked");
                         try {
                             method.invoke(receiver, args);
                         } catch (IllegalAccessException e) {

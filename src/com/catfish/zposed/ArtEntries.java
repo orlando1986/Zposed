@@ -7,28 +7,9 @@ import android.util.Log;
 
 class ArtEntries {
     private final static String TAG = "catfish";
-    private final static int BASE_TOKEN = 4;
 
     private static int getObjectAddr(Object obj) {
         return 0;
-    }
-
-    private static int getParamByteCount(Method method) {
-        int count = 0;
-        Class<?>[] types = method.getParameterTypes();
-        for (int i = 0; i < types.length; i++) {
-            String type = types[i].toString();
-            if (type.contains("long")) {
-                count++;
-            } else if (type.contains("double")) {
-                count++;
-            }
-            count++;
-        }
-        if (Modifier.isStatic(method.getModifiers())) {
-            count++;
-        }
-        return count * 4;
     }
 
     private static int[] getParamList(Method method) {
@@ -39,23 +20,23 @@ class ArtEntries {
         for (int i = 0; i < types.length; i++) {
             String type = types[i].toString();
             if (type.contains("int")) {
-                result[index] = 8 + BASE_TOKEN;
+                result[index] = 8;
             } else if (type.contains("short")) {
-                result[index] = 7 + BASE_TOKEN;
+                result[index] = 7;
             } else if (type.contains("float")) {
-                result[index] = 6 + BASE_TOKEN;
+                result[index] = 6;
             } else if (type.contains("boolean")) {
-                result[index] = 5 + BASE_TOKEN;
+                result[index] = 5;
             } else if (type.contains("char")) {
-                result[index] = 4 + BASE_TOKEN;
+                result[index] = 4;
             } else if (type.contains("byte")) {
-                result[index] = 3 + BASE_TOKEN;
+                result[index] = 3;
             } else if (type.contains("long")) {
-                result[index] = 2 + BASE_TOKEN;
+                result[index] = 2;
             } else if (type.contains("double")) {
-                result[index] = 1 + BASE_TOKEN;
+                result[index] = 1;
             } else { // Object
-                result[index] = 0 + BASE_TOKEN;
+                result[index] = 0;
             }
             index++;
         }
