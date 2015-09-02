@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 
 import android.util.Log;
 
-public class HookEntries {
+class ArtEntries {
     private final static String TAG = "catfish";
     private final static int BASE_TOKEN = 4;
 
@@ -63,13 +63,11 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, int arg) {
-        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Integer.valueOf(arg);
         return 1;
     }
 
     private static int boxArgs(Object[] box, int index, long arg) {
-        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Long.valueOf(arg);
         return 2;
     }
@@ -80,7 +78,6 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, char arg) {
-        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Character.valueOf(arg);
         return 1;
     }
@@ -96,7 +93,6 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, Object arg) {
-        Log.d(TAG, "boxArgs: " + arg);
         box[index] = arg;
         return 1;
     }

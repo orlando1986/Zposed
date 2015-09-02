@@ -1,5 +1,6 @@
 package com.catfish.zposed.ui;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import android.app.Activity;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.catfish.zposed.HookCallback;
 import com.catfish.zposed.HookManager;
 import com.catfish.zposed.R;
 
@@ -30,9 +32,23 @@ public class MainActivity extends Activity {
 
     private void hookVictim() {
         Method[] ms = getClass().getDeclaredMethods();
-        for(Method m : ms) {
+        for (Method m : ms) {
             if (m.getName().contains("victim")) {
-                HookManager.hookMethod(m);
+                HookManager.hookMethod(m, new HookCallback() {
+                    @Override
+                    public Object onHook(Method method, Object receiver, Object[] args) {
+                        try {
+                            method.invoke(receiver, args);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (IllegalArgumentException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                });
                 return;
             }
         }

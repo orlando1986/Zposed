@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #define JNIHOOK_CLASS "com/catfish/zposed/HookManager"
-#define JNIENTRY_CLASS "com/catfish/zposed/HookEntries"
+#define JNIENTRY_CLASS "com/catfish/zposed/ArtEntries"
 
 jclass hookClass;
 jclass methodClass;
