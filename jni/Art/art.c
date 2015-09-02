@@ -1,5 +1,4 @@
 #include "art.h"
-#include "art_entries.h"
 #include <stdarg.h>
 
 extern void art_quick_proxy(void*);

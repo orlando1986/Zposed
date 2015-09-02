@@ -1,6 +1,7 @@
 package com.catfish.zposed;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import android.util.Log;
 
@@ -10,6 +11,24 @@ public class HookEntries {
 
     private static int getObjectAddr(Object obj) {
         return 0;
+    }
+
+    private static int getParamByteCount(Method method) {
+        int count = 0;
+        Class<?>[] types = method.getParameterTypes();
+        for (int i = 0; i < types.length; i++) {
+            String type = types[i].toString();
+            if (type.contains("long")) {
+                count++;
+            } else if (type.contains("double")) {
+                count++;
+            }
+            count++;
+        }
+        if (Modifier.isStatic(method.getModifiers())) {
+            count++;
+        }
+        return count * 4;
     }
 
     private static int[] getParamList(Method method) {
@@ -44,11 +63,13 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, int arg) {
+        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Integer.valueOf(arg);
         return 1;
     }
 
     private static int boxArgs(Object[] box, int index, long arg) {
+        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Long.valueOf(arg);
         return 2;
     }
@@ -59,6 +80,7 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, char arg) {
+        Log.d(TAG, "boxArgs: " + arg);
         box[index] = Character.valueOf(arg);
         return 1;
     }
@@ -74,6 +96,7 @@ public class HookEntries {
     }
 
     private static int boxArgs(Object[] box, int index, Object arg) {
+        Log.d(TAG, "boxArgs: " + arg);
         box[index] = arg;
         return 1;
     }

@@ -30,7 +30,8 @@ public class HookManager {
     }
 
     public static Object onHooked(Method method, Object receiver, Object[] args) {
-        Log.d(TAG, "onHooked"/*, new Exception()*/);
+//        Log.d(TAG, "onHooked receiver=" + receiver + ", args0=" + args[0] + ", args1=" + args[1] + ", args2=" + args[2] /*, new Exception()*/);
+        Log.d(TAG, "onHooked receiver=" + receiver);
         int ptr = sMethodInfo.get(method.toString());
         sEntryTag.set(ptr);
         Object result = notifyOnHooked(method, receiver, args);

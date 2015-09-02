@@ -3,16 +3,14 @@
 #define BASE_TOKEN 4
 #define ENTRY_SIZE 9 + BASE_TOKEN
 
+extern int get_object_addr(int*);
+
 static jclass gEntryClass;
 static jmethodID gMethods[ENTRY_SIZE];
 static jclass gObjectClass;
 
 int* switch_entry(int flag) {
 	return (int*) gMethods[flag];
-}
-
-static int get_object_addr(void* method, int* obj) {
-	return (int)obj;
 }
 
 void init_entries(JNIEnv* env) {
@@ -23,7 +21,7 @@ void init_entries(JNIEnv* env) {
 
 	gMethods[0] = ((*env)->GetStaticMethodID(env, hookClass, "getEntryTag", "()I"));
 	gMethods[1] = ((*env)->GetStaticMethodID(env, gEntryClass, "getParamList", "(Ljava/lang/reflect/Method;)[I"));
-	gMethods[2] = ((*env)->GetStaticMethodID(env, gEntryClass, "getObjectAddr", "(Ljava/lang/Object;)[I"));
+	gMethods[2] = ((*env)->GetStaticMethodID(env, gEntryClass, "getObjectAddr", "(Ljava/lang/Object;)I"));
 	gMethods[3] = hookMethod;
 
 	gMethods[0 + BASE_TOKEN] = ((*env)->GetStaticMethodID(env, gEntryClass, "boxArgs", "([Ljava/lang/Object;ILjava/lang/Object;)I"));
@@ -41,7 +39,16 @@ void init_entries(JNIEnv* env) {
 	*quick_entry_32 = (int) (&get_object_addr);
 }
 
-int box_args(void* method, void* self, int* args) {
+int get_args_count(void* artmethod) {
+	JNIEnv* env = NULL;
+	if ((*gJVM)->GetEnv(gJVM, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+		return -1;
+	}
+	jobject method = (*env)->ToReflectedMethod(env, methodClass, (jmethodID) artmethod, 0);
+	return (int)(*env)->CallStaticIntMethod(env, gEntryClass, gMethods[4], method);
+}
+
+int box_args(void* artmethod, void* self, int* args) {
 	JNIEnv* env = NULL;
 	if ((*gJVM)->GetEnv(gJVM, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 		return -1;
@@ -52,8 +59,7 @@ int box_args(void* method, void* self, int* args) {
 	jsize size = (*env)->GetArrayLength(env, params);
 	jobjectArray argbox = (jobjectArray)(*env)->NewObjectArray(env, size, gObjectClass, NULL);
 
-	int* access_flag = (int*) (artmeth + METHOD_ACCESS_FLAG);
-	*access_flag = *access_flag | kAccNative;
+	int* access_flag = (int*) (artmethod + METHOD_ACCESS_FLAG);
 	if ((*access_flag & kAccStatic) != kAccStatic) {
 		args++;
 	}
