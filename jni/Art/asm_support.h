@@ -18,10 +18,10 @@
 #define ART_RUNTIME_ASM_SUPPORT_H_
 
 // Verified by object_test.
-#define METHOD_QUICK_CODE_OFFSET_32 40
+#define METHOD_QUICK_CODE_OFFSET_32 44
 #define METHOD_QUICK_CODE_OFFSET_64 56
 
-#define METHOD_ACCESS_FLAG 28
+#define METHOD_ACCESS_FLAG 20
 #define METHOD_MAPPING_TABLE 60
 #define kAccNative 0x0100
 #define kAccStatic 0x0008

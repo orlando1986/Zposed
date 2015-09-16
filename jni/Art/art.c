@@ -10,12 +10,12 @@ static jint hook_zposed_method(JNIEnv* env, jobject thiz, jobject method) {
 	int* quick_entry_32 = (int*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);
 	jint ptr = (jint)* quick_entry_32;
 	*quick_entry_32 = (int) (&art_quick_proxy);
-
+/*
 	int* access_flag = (int*) (artmeth + METHOD_ACCESS_FLAG);
 	*access_flag = *access_flag | kAccNative;
 
 	int* mapping_table = (int*) (artmeth + METHOD_MAPPING_TABLE);
-	*mapping_table = 0;
+	*mapping_table = 0;*/
 	return ptr;
 }
 

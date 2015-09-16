@@ -50,6 +50,7 @@ class ArtEntries {
     private static Class<?> returnTypeForArt(Object artmethod) {
         try {
             Method m = artmethod.getClass().getDeclaredMethod("getReturnType", (Class[]) null);
+            m.setAccessible(true);
             return (Class<?>)m.invoke(artmethod);
         } catch (NoSuchMethodException e) {
             Log.e(TAG, e.toString());
@@ -65,9 +66,7 @@ class ArtEntries {
 
     private static int getReturnType(Object method) {
         Class<?> type_class = returnTypeForArt(method);
-
         String type = type_class.toString();
-        Log.d(TAG, "type=" + type);
         if (type.contains("int")) {
             return 8 + BASE;
         } else if (type.contains("short")) {

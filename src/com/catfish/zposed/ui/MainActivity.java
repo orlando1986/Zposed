@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
                     public Object onHook(Method method, Object receiver, Object[] args) {
                         Log.d(TAG, "onHooked");
                         try {
+                            method.setAccessible(true);
                             return method.invoke(receiver, args);
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
