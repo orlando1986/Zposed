@@ -76,6 +76,7 @@ PROXY:
     mov    r0, #12
     push   {r1-r7}
     mov    r7, lr
+    bl     exe_switch_entry
     bl     switch_entry
     mov    lr, r7
     ldr    r7, [r0, #METHOD_QUICK_CODE_OFFSET_32]

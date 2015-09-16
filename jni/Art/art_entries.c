@@ -3,7 +3,7 @@
 extern int get_object_addr(int*);
 
 static jclass gEntryClass;
-static jmethodID gMethods[13];
+static jmethodID gMethods[22];
 static jclass gObjectClass;
 
 int* switch_entry(int flag) {
@@ -29,7 +29,17 @@ void init_entries(JNIEnv* env) {
 	gMethods[9] = ((*env)->GetStaticMethodID(env, hookClass, "getEntryTag", "()I"));
 	gMethods[10] = ((*env)->GetStaticMethodID(env, gEntryClass, "getParamList", "(Ljava/lang/reflect/Method;)[I"));
 	gMethods[11] = ((*env)->GetStaticMethodID(env, gEntryClass, "getObjectAddr", "(Ljava/lang/Object;)I"));
-	gMethods[12] = hookMethod;
+	gMethods[12] = ((*env)->GetStaticMethodID(env, gEntryClass, "getReturnType", "(Ljava/lang/Object;)I"));
+
+	gMethods[13] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookObject", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"));
+	gMethods[14] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookDouble", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)D"));
+	gMethods[15] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookLong", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)J"));
+	gMethods[16] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookByte", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)B"));
+	gMethods[17] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookChar", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)C"));
+	gMethods[18] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookBoolean", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Z"));
+	gMethods[19] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookFloat", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)F"));
+	gMethods[20] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookShort", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)S"));
+	gMethods[21] = ((*env)->GetStaticMethodID(env, gEntryClass, "onHookInt", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)I"));
 
 	int artmeth = (int) gMethods[11];
 	int* quick_entry_32 = (int*) (artmeth + METHOD_QUICK_CODE_OFFSET_32);

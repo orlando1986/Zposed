@@ -31,7 +31,7 @@ public class HookManager {
         return result;
     }
 
-    private static Object onHooked(Object artmethod, Object receiver, Object[] args) {
+    static Object onHooked(Object artmethod, Object receiver, Object[] args) {
         Method method = instanceMethod(artmethod);
         HookCallback c = sMethodInfo.get(method.toString());
         sEntryTag.set(c.ptr);

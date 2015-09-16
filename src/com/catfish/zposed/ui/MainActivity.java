@@ -23,11 +23,12 @@ public class MainActivity extends Activity {
     }
 
     public void onClick(View view) {
-        victim(1, 1234567890987654l, 'x');
+        Log.d(TAG, "get long: " + victim(1, 1234567890987654l, 'x'));
     }
 
-    private void victim(int a, long b, char c) {
+    private long victim(int a, long b, char c) {
         Log.d(TAG, "victim called: a=" + a + ", b=" + b + ", c=" + c);
+        return b;
     }
 
     private void hookVictim() {
@@ -39,7 +40,7 @@ public class MainActivity extends Activity {
                     public Object onHook(Method method, Object receiver, Object[] args) {
                         Log.d(TAG, "onHooked");
                         try {
-                            method.invoke(receiver, args);
+                            return method.invoke(receiver, args);
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         } catch (IllegalArgumentException e) {

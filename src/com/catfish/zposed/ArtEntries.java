@@ -1,5 +1,7 @@
 package com.catfish.zposed;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -41,6 +43,50 @@ class ArtEntries {
             index++;
         }
         return result;
+    }
+
+    private static final int BASE = 13;
+
+    private static Class<?> returnTypeForArt(Object artmethod) {
+        try {
+            Method m = artmethod.getClass().getDeclaredMethod("getReturnType", (Class[]) null);
+            return (Class<?>)m.invoke(artmethod);
+        } catch (NoSuchMethodException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, e.toString());
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, e.toString());
+        } catch (InvocationTargetException e) {
+            Log.e(TAG, e.toString());
+        }
+        return null;
+    }
+
+    private static int getReturnType(Object method) {
+        Class<?> type_class = returnTypeForArt(method);
+
+        String type = type_class.toString();
+        Log.d(TAG, "type=" + type);
+        if (type.contains("int")) {
+            return 8 + BASE;
+        } else if (type.contains("short")) {
+            return 7 + BASE;
+        } else if (type.contains("float")) {
+            return 6 + BASE;
+        } else if (type.contains("boolean")) {
+            return 5 + BASE;
+        } else if (type.contains("char")) {
+            return 4 + BASE;
+        } else if (type.contains("byte")) {
+            return 3 + BASE;
+        } else if (type.contains("long")) {
+            return 2 + BASE;
+        } else if (type.contains("double")) {
+            return 1 + BASE;
+        } else { // Object
+            return 0 + BASE;
+        }
     }
 
     private static int boxArgs(Object[] box, int index, int arg) {
@@ -86,5 +132,41 @@ class ArtEntries {
     private static int boxArgs(Object[] box, int index, boolean arg) {
         box[index] = Boolean.valueOf(arg);
         return 1;
+    }
+
+    private static int onHookInt(Object artmethod, Object receiver, Object[] args) {
+        return (Integer) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static long onHookLong(Object artmethod, Object receiver, Object[] args) {
+        return (Long) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static double onHookDouble(Object artmethod, Object receiver, Object[] args) {
+        return (Double) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static char onHookChar(Object artmethod, Object receiver, Object[] args) {
+        return (Character) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static short onHookShort(Object artmethod, Object receiver, Object[] args) {
+        return (Short) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static float onHookFloat(Object artmethod, Object receiver, Object[] args) {
+        return (Float) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static Object onHookObject(Object artmethod, Object receiver, Object[] args) {
+        return HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static boolean onHookBoolean(Object artmethod, Object receiver, Object[] args) {
+        return (Boolean) HookManager.onHooked(artmethod, receiver, args);
+    }
+
+    private static byte onHookByte(Object artmethod, Object receiver, Object[] args) {
+        return (Byte) HookManager.onHooked(artmethod, receiver, args);
     }
 }
